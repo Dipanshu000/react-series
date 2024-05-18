@@ -1,0 +1,36 @@
+oundaries = request.completedBoundaries;
+
+    for (i = 0; i < completedBoundaries.length; i++) {
+      var _boundary = completedBoundaries[i];
+
+      if (!flushCompletedBoundary(request, destination, _boundary)) {
+        request.destination = null;
+        i++;
+        completedBoundaries.splice(0, i);
+        return;
+      }
+    }
+
+    completedBoundaries.splice(0, i); // Allow anything written so far to flush to the underlying sink before
+    // we continue with lower priorities.
+
+    completeWriting(destination);
+    beginWriting(destination); // TODO: Here we'll emit data used by hydration.
+    // Next we emit any segments of any boundaries that are partially complete
+    // but not deeply complete.
+
+    var partialBoundaries = request.partialBoundaries;
+
+    for (i = 0; i < partialBoundaries.length; i++) {
+      var _boundary2 = partialBoundaries[i];
+
+      if (!flushPartialBoundary(request, destination, _boundary2)) {
+        request.destination = null;
+        i++;
+        partialBoundaries.splice(0, i);
+        return;
+      }
+    }
+
+    partialBoundaries.splice(0, i); // Next we check the completed boundaries again. This may have had
+    // boundaries added to it in case they were too larged 
